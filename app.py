@@ -22,11 +22,9 @@ def fetch_users():
         new_data = []
 
         for data in users:
+            print(data)
             new_data.append(User(data[0], data[3], data[4]))
     return new_data
-
-
-users = fetch_users()
 
 
 def init_user_table():
@@ -53,6 +51,8 @@ def init_product_prices():
 
 init_user_table()
 init_product_prices()
+
+users = fetch_users()
 
 email_table = {u.email: u for u in users}
 userid_table = {u.id: u for u in users}
@@ -99,7 +99,7 @@ def user_registration():
                            "first_name,"
                            "last_name,"
                            "email,"
-                           "password) VALUES(?, ?, ?, ?", (first_name, last_name, email, password))
+                           "password) VALUES(?, ?, ?, ?)", (first_name, last_name, email, password))
             conn.commit()
             response["message"] = "success"
             response["status_code"] = 201
@@ -140,6 +140,7 @@ def get_products():
     response['status_code'] = 200
     response['data'] = items
     return response
+
 
 @app.route("/delete product/<int:product_id>")
 @jwt_required()
@@ -188,4 +189,15 @@ def get_item(product_id):
     response = {}
 
     with sqlite3.connect("point_of_sale.db") as conn:
-        cursor
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM products WHERE id=" + str(product_id))
+
+        response["status_code"] = 200
+        response["description"] = "product added"
+        response["data"] = cursor.fetchone()
+
+    return jsonify(response)
+
+
+if __name__ == '__main__':
+    app.run()
