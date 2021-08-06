@@ -1,6 +1,7 @@
 import hmac
 import sqlite3
 import datetime
+from flask_mail import Mail, Message
 from flask import Flask, request, jsonify
 from flask_jwt import JWT, jwt_required, current_identity
 from flask_cors import CORS
@@ -72,6 +73,13 @@ def identity(payload):
 app = Flask(__name__)
 app.debug = True
 app.config['SECRET_KEY'] = 'super-secret'
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USERNAME'] = 'nahvandiemen@gmail.com'
+app.config['MAIL_PASSWORD'] = 'N@#umvd98'
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = True
+mail = Mail(app)
 CORS(app)
 
 jwt = JWT(app, authenticate, identity)
@@ -103,7 +111,11 @@ def user_registration():
             conn.commit()
             response["message"] = "success"
             response["status_code"] = 201
-        return response
+            if request.method == 'POST':
+                msg = Message('Confirmation email', sender='nahvandiemen@gmail.com', recipients=[email])
+                msg.body = "You successfully registered this email serves as confirmation"
+                mail.send(msg)
+                return "Send email"
 
 
 @app.route('/product-page', methods=["POST"])
@@ -116,7 +128,7 @@ def products():
         price = request.form['price']
         date_time = datetime.datetime.now()
 
-        with sqlite3.connect('point_of_sale') as conn:
+        with sqlite3.connect('point_of_sale.db') as conn:
             cursor = conn.cursor()
             cursor.execute("INSERT INTO products("
                            "product,"
@@ -146,7 +158,7 @@ def get_products():
 @jwt_required()
 def delete_product(product_id):
     response = {}
-    with sqlite3.connect("point_of_sale") as conn:
+    with sqlite3.connect("point_of_sale.db") as conn:
         cursor = conn.cursor()
         cursor.execute("DELETE FROM products WHERE id=" + str(product_id))
         conn.commit()
@@ -161,7 +173,7 @@ def edit_product(product_id):
     response = {}
 
     if request.method == "PUT":
-        with sqlite3.connect('point_of_sale') as conn:
+        with sqlite3.connect('point_of_sale.db') as conn:
             incoming_data = dict(request.json)
             put_data = {}
 
@@ -175,7 +187,7 @@ def edit_product(product_id):
                     response['status_code'] = 200
             if incoming_data.get("price") is not None:
                 put_data['price'] = incoming_data.get('price')
-                with sqlite3.connect('point_of_sale') as conn:
+                with sqlite3.connect('point_of_sale.db') as conn:
                     cursor = conn.cursor()
                     cursor.execute("UPDATE products SET price =? WHERE id=?", (put_data["price"], product_id))
                     conn.commit()
