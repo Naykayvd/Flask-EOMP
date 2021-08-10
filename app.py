@@ -167,7 +167,7 @@ def delete_product(product_id):
     return response
 
 
-@app.route('/edit-post/<int:product_id>/', methods=["PUT"])
+@app.route('/edit-product/<int:product_id>/', methods=["PUT"])
 @jwt_required()
 def edit_product(product_id):
     response = {}
