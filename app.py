@@ -88,7 +88,7 @@ jwt = JWT(app, authenticate, identity)
 @app.route('/protected')
 @jwt_required()
 def protected():
-    return current_identity
+    return '%s' % current_identity
 
 
 @app.route('/user-registration/', methods=["POST"])
@@ -118,7 +118,7 @@ def user_registration():
                 return "Send email"
 
 
-@app.route('/product-page', methods=["POST"])
+@app.route('/add-products', methods=["POST"])
 @jwt_required()
 def products():
     response = {}
@@ -140,7 +140,7 @@ def products():
         return response
 
 
-@app.route('/get-products/', methods=["GET"])
+@app.route('/products-page/', methods=["GET"])
 def get_products():
     response = {}
     with sqlite3.connect("point_of_sale.db") as conn:
